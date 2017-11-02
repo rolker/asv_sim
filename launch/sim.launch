@@ -1,0 +1,4 @@
+<launch>
+    <node pkg="asv_sim" type="asv_sim" name="asv_sim"/>
+</launch>
+
