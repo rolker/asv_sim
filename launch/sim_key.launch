@@ -1,0 +1,11 @@
+<launch>
+    <node pkg="asv_sim" type="asv_sim" name="asv_sim"/>
+    <node pkg="asv_helm" type="asv_helm_node" name="asv_helm"/>
+    <node pkg="turtlesim" type="turtle_teleop_key" name="teleop_key"/>
+    <node pkg="twiststamped_to_twist" type="twist_to_twiststamped_node" name="twist_to_twiststamped">
+        <remap from="output" to="cmd_vel"/>
+        <remap from="input" to="turtle1/cmd_vel"/>
+    </node>
+</launch>
+
+

@@ -67,10 +67,12 @@ class AsvSim:
     def heading_hold(self,data):
         self.throttle = data.thrust.value
         current_heading = self.dynamics.heading
-        if data.heading.heading > current_heading:
-            self.rudder = .5
-        else:
-            self.rudder = -.5
+        heading_delta = data.heading.heading - current_heading
+        if heading_delta>math.pi:
+            heading_delta -= math.pi*2.0
+        if heading_delta<-math.pi:
+            heading_delta += math.pi*2.0
+        self.rudder = max(-1.0,min(1.0,heading_delta))
         
         
     def update(self, event):
