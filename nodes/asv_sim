@@ -24,12 +24,12 @@ import asv_sim.coastal_surveyor
 
 class AsvSim:
     def __init__(self):
-        self.state = VehicleStateRequest.VP_STATE_PAUSE
+        self.vehicle_state = VehicleStateRequest.VP_STATE_PAUSE
         self.pilot_control = False
+        self.inhibit = True
         
         self.throttle = 0.0
         self.rudder = 0.0
-        
         
         self.dynamics = asv_sim.dynamics.Dynamics(asv_sim.coastal_surveyor.coastal_surveyor)
 
@@ -37,7 +37,7 @@ class AsvSim:
         rospy.init_node('asv_sim')
         self.state_service = rospy.Service('/control/vehicle/state', VehicleState, self.state)
         self.pilot_service = rospy.Service('/control/vehicle/pilot', PilotControl, self.pilot)
-        self.inhibit_subscriber = rospy.Subscriber('/control/drive/inhibit', Bool, self.inhibit)
+        self.inhibit_subscriber = rospy.Subscriber('/control/drive/inhibit', Bool, self.setInhibit)
         self.heading_hole_subscriber = rospy.Subscriber('/control/drive/heading_hold', HeadingHold, self.heading_hold)
         self.position_publisher = rospy.Publisher('/sensor/vehicle/position', BasicPositionStamped, queue_size = 5)
         self.heading_publisher = rospy.Publisher('/sensor/vehicle/heading', HeadingStamped, queue_size = 5)
@@ -46,7 +46,7 @@ class AsvSim:
         
     def state(self,req):
         if req.desired_state in (VehicleStateRequest.VP_STATE_PAUSE, VehicleStateRequest.VP_STATE_ACTIVE):
-            self.state = req.desired_state
+            self.vehicle_state = req.desired_state
             ret = VehicleStateResponse()
             ret.command_response = VehicleStateResponse.STATE_REQUEST_ACCEPTED
             return ret
@@ -61,10 +61,12 @@ class AsvSim:
         ret.command_response = PilotControlResponse.PILOT_REQUEST_ACCEPTED
         return ret
     
-    def inhibit(self,data):
-        pass
+    def setInhibit(self,data):
+        self.inhibit = data.data
+        
     
     def heading_hold(self,data):
+ 
         self.throttle = data.thrust.value
         current_heading = self.dynamics.heading
         heading_delta = data.heading.heading - current_heading
@@ -76,6 +78,14 @@ class AsvSim:
         
         
     def update(self, event):
+        if self.inhibit or self.vehicle_state != VehicleStateRequest.VP_STATE_ACTIVE or not self.pilot_control:
+            self.throttle = 0.0
+            self.rudder = 0.0
+            if self.vehicle_state == VehicleStateRequest.VP_STATE_ACTIVE:
+                ss = 'VP_STATE_ACTIVE'
+            else:
+                ss = 'VP_STATE_PAUSE'
+            print 'not in control: inhibit:',self.inhibit,'state:',ss,'pilot control:',self.pilot_control, event.current_real
         self.dynamics.update(self.throttle,self.rudder,event.current_real)
         p = BasicPositionStamped()
         p.basic_position.position.latitude = math.degrees(self.dynamics.latitude)
