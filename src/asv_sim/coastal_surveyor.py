@@ -18,7 +18,8 @@
 # prop pitch of 20 is just a random number for testing, mass is random as well
 coastal_surveyor = {'max_rpm':2400,
                     'max_power':74500,
-                    'idle_rpm':0,
+                    # 'idle_rpm':100,
+                    'ide_rpm':0,
                     'prop_ratio':0.389105058,
                     'prop_pitch':20,
                     'max_rpm_change_rate':1000,
