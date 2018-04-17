@@ -71,8 +71,17 @@ class AsvSim:
     
     def heading_hold(self,data):
         self.last_heading_hold_timestamp = data.header.stamp
-        self.throttle = data.thrust.value / self.dynamics.model["max_speed"]
         
+        # Handle Thrust type==0:Disable, type=1:m/s, type=2:[0-1]
+        # Note it is not clear from the documentation if thrust can be <0, 
+        # But given that this is a heading-hold message it seems unlikely. 
+        if data.thrust.type == 0:
+            self.throttle = 0.0
+        elif data.thrust.type == 1:
+            self.throttle = data.thrust.value / self.dynamics.model["max_speed"]
+        elif data.thrust.type == 2:
+            self.throttle = data.thrust.value
+            
         current_heading = self.dynamics.heading
         heading_delta = data.heading.heading - current_heading
         if heading_delta>math.pi:
@@ -96,7 +105,6 @@ class AsvSim:
                 ss = 'VP_STATE_PAUSE'
             print 'not in control: inhibit:',self.inhibit,'state:',ss,'pilot control:',self.pilot_control, event.current_real
         
-        print("throttle: %f" % self.throttle)
         self.dynamics.update(self.throttle,self.rudder,event.current_real)
         
         p = BasicPositionStamped()
