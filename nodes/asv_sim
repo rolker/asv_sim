@@ -22,9 +22,10 @@ from asv_msgs.msg import VehicleStatus
 
 import asv_sim.dynamics
 import asv_sim.coastal_surveyor
+import asv_sim.cw4
 
 class AsvSim:
-    def __init__(self):
+    def __init__(self,model="cw4"):
         self.vehicle_state = VehicleStateRequest.VP_STATE_PAUSE
         self.pilot_control = False
         self.inhibit = True
@@ -32,7 +33,10 @@ class AsvSim:
         self.throttle = 0.0
         self.rudder = 0.0
         
-        self.dynamics = asv_sim.dynamics.Dynamics(asv_sim.coastal_surveyor.coastal_surveyor)
+        if model == "cw4":
+            self.dynamics = asv_sim.dynamics.Dynamics(asv_sim.cw4.cw4)
+        elif model == "coastal_surveyor":
+            self.dynamics = asv_sim.dynamics.Dynamics(asv_sim.coastal_surveyor.coastal_surveyor)
         
         self.last_heading_hold_timestamp = None
 
