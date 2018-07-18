@@ -6,9 +6,13 @@
 # Copyright 2017, All rights reserved.
 
 import math
+import time
+import threading
 
 import rospy
 from std_msgs.msg import Bool
+from std_msgs.msg import Float64
+from rosgraph_msgs.msg import Clock
 from asv_srvs.srv import VehicleState
 from asv_srvs.srv import VehicleStateRequest
 from asv_srvs.srv import VehicleStateResponse
@@ -39,6 +43,10 @@ class AsvSim:
             self.dynamics = asv_sim.dynamics.Dynamics(asv_sim.coastal_surveyor.coastal_surveyor)
         
         self.last_heading_hold_timestamp = None
+        self.wallclock_time_step = 0.05
+        self.sim_time = rospy.Time.from_sec(time.time())
+        self.time_factor = 1.0
+
 
     def run(self):
         rospy.init_node('asv_sim')
@@ -49,7 +57,11 @@ class AsvSim:
         self.position_publisher = rospy.Publisher('/sensor/vehicle/position', BasicPositionStamped, queue_size = 5)
         self.heading_publisher = rospy.Publisher('/sensor/vehicle/heading', HeadingStamped, queue_size = 5)
         self.vehicle_status_publisher = rospy.Publisher('/vehicle_status', VehicleStatus, queue_size = 5)
+        self.clock_publisher = rospy.Publisher('/clock', Clock, queue_size = 5)
+        self.clock_factor_subscriber = rospy.Subscriber('/clock_factor', Float64, self.clock_factor_callback)
         rospy.Timer(rospy.Duration.from_sec(0.05),self.update)
+        clock_timer = threading.Timer(self.wallclock_time_step,self.update_clock)
+        clock_timer.start()
         rospy.spin()
         
     def state(self,req):
@@ -71,11 +83,13 @@ class AsvSim:
     
     def setInhibit(self,data):
         self.inhibit = data.data
-        
+
+    def clock_factor_callback(self, data):
+        self.time_factor = data.data
     
     def heading_hold(self,data):
         self.last_heading_hold_timestamp = data.header.stamp
-        
+        print 'heading hold:', data.thrust.type, data.thrust.value
         # Handle Thrust type==0:Disable, type=1:m/s, type=2:[0-1]
         # Note it is not clear from the documentation if thrust can be <0, 
         # But given that this is a heading-hold message it seems unlikely. 
@@ -93,7 +107,16 @@ class AsvSim:
         if heading_delta<-math.pi:
             heading_delta += math.pi*2.0
         self.rudder = max(-1.0,min(1.0,heading_delta))
+        print self.throttle, self.rudder
         
+    def update_clock(self):
+        self.sim_time += rospy.Duration.from_sec(self.wallclock_time_step*self.time_factor)
+        c = Clock(self.sim_time)
+        self.clock_publisher.publish(c)
+        if not rospy.is_shutdown():
+            clock_timer = threading.Timer(self.wallclock_time_step,self.update_clock)
+            clock_timer.start()
+
         
     def update(self, event):
         if self.last_heading_hold_timestamp is None or event.current_real - self.last_heading_hold_timestamp > rospy.Duration.from_sec(0.5):

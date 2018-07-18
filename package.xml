@@ -51,14 +51,16 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>asv_msgs</build_depend>
   <build_depend>asv_srvs</build_depend>
+  <build_depend>rosgraph_msgs</build_depend>
   <build_depend>rospy</build_depend>
   <build_export_depend>asv_msgs</build_export_depend>
   <build_export_depend>asv_srvs</build_export_depend>
   <build_export_depend>rospy</build_export_depend>
+  <build_export_depend>rosgraph_msgs</build_export_depend>
   <exec_depend>asv_msgs</exec_depend>
   <exec_depend>asv_srvs</exec_depend>
   <exec_depend>rospy</exec_depend>
-
+  <exec_depend>rosgraph_msgs</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

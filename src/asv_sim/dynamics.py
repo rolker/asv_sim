@@ -43,13 +43,15 @@ class Dynamics:
         self.roll = 0.0
 
     def update(self,throttle, rudder, timestamp):
-        
+        print 'dynamics update:',throttle, rudder, timestamp
         throttle = min(1.0,max(0.0,throttle))
         
         if self.last_update is None:
             delta_t = None
         else:
             delta_t = (timestamp-self.last_update).to_sec()
+            if delta_t <= 0:
+                delta_t = None
         self.last_update = timestamp
 
         target_rpm = self.model['idle_rpm']+ throttle * (self.model['max_rpm']-self.model['idle_rpm'])

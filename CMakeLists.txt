@@ -10,6 +10,7 @@ project(asv_sim)
 find_package(catkin REQUIRED COMPONENTS
   asv_msgs
   asv_srvs
+  rosgraph_msgs
   rospy
 )
 
