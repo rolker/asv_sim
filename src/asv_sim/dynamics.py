@@ -9,8 +9,10 @@ import math
 import random
 import geodesic
 
-start_lat =  43.0725381
-start_lon = -70.7105114
+#start_lat =  43.0725381
+#start_lon = -70.7105114
+start_lat =  68.347
+start_lon = -166.954
 
 class Dynamics:
     def __init__(self,model):
