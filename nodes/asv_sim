@@ -25,8 +25,10 @@ from asv_msgs.msg import HeadingStamped
 from asv_msgs.msg import VehicleStatus
 
 import asv_sim.dynamics
+import asv_sim.environment
 import asv_sim.coastal_surveyor
 import asv_sim.cw4
+
 
 class AsvSim:
     def __init__(self,model="cw4"):
@@ -37,10 +39,12 @@ class AsvSim:
         self.throttle = 0.0
         self.rudder = 0.0
         
+        self.envoronment = asv_sim.environment.Environment()
+        
         if model == "cw4":
-            self.dynamics = asv_sim.dynamics.Dynamics(asv_sim.cw4.cw4)
+            self.dynamics = asv_sim.dynamics.Dynamics(asv_sim.cw4.cw4,self.envoronment)
         elif model == "coastal_surveyor":
-            self.dynamics = asv_sim.dynamics.Dynamics(asv_sim.coastal_surveyor.coastal_surveyor)
+            self.dynamics = asv_sim.dynamics.Dynamics(asv_sim.coastal_surveyor.coastal_surveyor,self.envoronment)
         
         self.last_heading_hold_timestamp = None
         self.wallclock_time_step = 0.05
@@ -137,8 +141,8 @@ class AsvSim:
         p = BasicPositionStamped()
         p.basic_position.position.latitude = math.degrees(self.dynamics.latitude)
         p.basic_position.position.longitude = math.degrees(self.dynamics.longitude)
-        p.basic_position.cog = self.dynamics.heading
-        p.basic_position.sog = self.dynamics.speed
+        p.basic_position.cog = self.dynamics.cog
+        p.basic_position.sog = self.dynamics.sog
         p.header.stamp = self.dynamics.last_update
         self.position_publisher.publish(p)
         

@@ -9,15 +9,19 @@ import math
 import random
 import geodesic
 
-#start_lat =  43.0725381
-#start_lon = -70.7105114
-start_lat =  68.347
-start_lon = -166.954
+# Portsmouth, New Hampshire
+start_lat =  43.0725381
+start_lon = -70.7105114
+
+
+# Point Hope, Alaska
+#start_lat =  68.347
+#start_lon = -166.954
 
 class Dynamics:
-    def __init__(self,model):
+    def __init__(self,model, environment=None):
         self.model = model
-
+        self.environment = environment
         
         self.reset()
 
@@ -43,6 +47,9 @@ class Dynamics:
         self.heading = 0.0
         self.pitch = 0.0
         self.roll = 0.0
+        
+        self.sog = 0.0
+        self.cog = 0.0
 
     def update(self,throttle, rudder, timestamp):
         print 'dynamics update:',throttle, rudder, timestamp
@@ -102,8 +109,19 @@ class Dynamics:
 
 
         if delta_t is not None:
+            last_lat = self.latitude
+            last_long = self.longitude
             delta = self.speed*delta_t
             self.longitude,self.latitude = geodesic.direct(self.longitude,self.latitude,self.heading,delta)
+            if self.environment is not None:
+                c = self.environment.getCurrent(self.latitude, self.longitude)
+                if c is not None:
+                    current_speed = random.gauss(c['speed'],c['speed']*0.1)
+                    current_direction = math.radians(c['direction']) + random.gauss(0.0,0.25)
+                    self.longitude,self.latitude = geodesic.direct(self.longitude,self.latitude,current_direction,current_speed*delta_t)
+            self.cog, self.sog = geodesic.inverse(last_long, last_lat, self.longitude, self.latitude)
+            self.sog /= delta_t
+            
 
 
         #self.roll = math.radians(math.sin(time.time()) * 2.5)
