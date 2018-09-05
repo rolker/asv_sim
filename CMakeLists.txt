@@ -186,7 +186,7 @@ include_directories(
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
 
-catkin_install_python(PROGRAMS nodes/asv_sim
+catkin_install_python(PROGRAMS nodes/asv_sim_node.py nodes/cw4_sim_node.py
                       DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
                       
 #############
