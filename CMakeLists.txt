@@ -8,8 +8,9 @@ project(asv_sim)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  asv_msgs
-  asv_srvs
+  geometry_msgs
+  geographic_msgs
+  marine_msgs
   rosgraph_msgs
   rospy
 )
@@ -186,7 +187,7 @@ include_directories(
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
 
-catkin_install_python(PROGRAMS nodes/asv_sim_node.py nodes/cw4_sim_node.py
+catkin_install_python(PROGRAMS nodes/asv_sim_node.py
                       DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
                       
 #############

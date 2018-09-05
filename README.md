@@ -1,2 +1,2 @@
 # asv_sim
-ROS Nodes that simulates the CW4 interface.
+ROS Nodes that simulates a generic ASV.
