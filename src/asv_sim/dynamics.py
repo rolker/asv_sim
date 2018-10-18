@@ -9,9 +9,13 @@ import math
 import random
 import geodesic
 
-# Portsmouth, New Hampshire
-start_lat =  43.0725381
-start_lon = -70.7105114
+# Portsmouth, New Hampshire, pier
+#start_lat =  43.072091937198394
+#start_lon = -70.71126009757178
+
+# Portsmouth, New Hampshire, cod rock
+start_lat =  43.073397415457535
+start_lon = -70.71054174878898
 
 
 # Point Hope, Alaska
@@ -44,7 +48,7 @@ class Dynamics:
         self.longitude = math.radians(start_lon)
         self.latitude = math.radians(start_lat)
         
-        self.heading = 0.0
+        self.heading = 1.0
         self.pitch = 0.0
         self.roll = 0.0
         

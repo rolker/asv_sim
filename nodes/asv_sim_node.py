@@ -13,6 +13,7 @@ import rospy
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Float64
 from std_msgs.msg import Float32
+from std_msgs.msg import Bool
 from rosgraph_msgs.msg import Clock
 from geographic_msgs.msg import GeoPointStamped
 from marine_msgs.msg import NavEulerStamped
@@ -47,6 +48,7 @@ class AsvSim:
         self.clock_publisher = rospy.Publisher('/clock', Clock, queue_size = 5)
         self.clock_factor_subscriber = rospy.Subscriber('/clock_factor', Float64, self.clock_factor_callback)
         self.cmd_vel_subscriber = rospy.Subscriber('/cmd_vel', Twist, self.cmd_vel_callback)
+        self.reset_subscriber = rospy.Subscriber('/sim_reset', Bool, self.reset_callback)
         rospy.Timer(rospy.Duration.from_sec(0.05),self.update)
         clock_timer = threading.Timer(self.wallclock_time_step,self.update_clock)
         clock_timer.start()
@@ -55,6 +57,9 @@ class AsvSim:
     def clock_factor_callback(self, data):
         self.time_factor = data.data
     
+    def reset_callback(self, data):
+        self.dynamics.reset()
+        
         
     def update_clock(self):
         self.sim_time += rospy.Duration.from_sec(self.wallclock_time_step*self.time_factor)
@@ -66,7 +71,7 @@ class AsvSim:
 
     def cmd_vel_callback(self, data):
         self.throttle = max(min(data.linear.x/self.dynamics.model['max_speed'],1.0),-1.0)
-        self.rudder = max(min(data.angular.z,1.0),-1.0)
+        self.rudder = -max(min(data.angular.z,1.0),-1.0)
         self.last_command_timestamp = self.sim_time
         
     def update(self, event):
