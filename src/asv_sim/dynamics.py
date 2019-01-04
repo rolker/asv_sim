@@ -56,7 +56,7 @@ class Dynamics:
         self.cog = 0.0
 
     def update(self,throttle, rudder, timestamp):
-        print 'dynamics update:',throttle, rudder, timestamp
+        #print 'dynamics update:',throttle, rudder, timestamp
         throttle = min(1.0,max(0.0,throttle))
         
         if self.last_update is None:

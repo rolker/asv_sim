@@ -23,6 +23,9 @@ import asv_sim.environment
 import asv_sim.coastal_surveyor
 import asv_sim.cw4
 
+from dynamic_reconfigure.server import Server
+from asv_sim.cfg import asv_simConfig
+
 class AsvSim:
     def __init__(self,model="cw4"):
         self.throttle = 0.0
@@ -49,6 +52,9 @@ class AsvSim:
         self.clock_factor_subscriber = rospy.Subscriber('/clock_factor', Float64, self.clock_factor_callback)
         self.cmd_vel_subscriber = rospy.Subscriber('/cmd_vel', Twist, self.cmd_vel_callback)
         self.reset_subscriber = rospy.Subscriber('/sim_reset', Bool, self.reset_callback)
+        
+        srv = Server(asv_simConfig, self.reconfigure_callback)
+        
         rospy.Timer(rospy.Duration.from_sec(0.05),self.update)
         clock_timer = threading.Timer(self.wallclock_time_step,self.update_clock)
         clock_timer.start()
@@ -73,6 +79,12 @@ class AsvSim:
         self.throttle = max(min(data.linear.x/self.dynamics.model['max_speed'],1.0),-1.0)
         self.rudder = -max(min(data.angular.z,1.0),-1.0)
         self.last_command_timestamp = self.sim_time
+
+    def reconfigure_callback(self, config, level):
+        print config
+        self.environment.current['speed'] = config['current_speed']
+        self.environment.current['direction'] = config['current_direction']
+        return config
         
     def update(self, event):
         if self.last_command_timestamp is None or event.current_real - self.last_command_timestamp > rospy.Duration.from_sec(0.5*self.time_factor):
