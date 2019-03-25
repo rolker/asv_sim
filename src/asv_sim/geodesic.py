@@ -109,6 +109,8 @@ def inverse(lon1,lat1,lon2,lat2):
         sinl = math.sin(l)
     
         sinSigma = math.sqrt(((cosU2*sinl)**2)+(cosU1*sinU2-sinU1*cosU2*cosl)**2)
+        if sinSigma == 0:
+            return 0.0,0.0
         cosSigma = sinU1*sinU2+cosU1*cosU2*cosl
         sigma = math.atan2(sinSigma,cosSigma)
         sinAlpha = (cosU1*cosU2*sinl)/sinSigma
