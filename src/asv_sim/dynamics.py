@@ -81,8 +81,11 @@ class Dynamics:
         prop_rpm = self.model['prop_ratio']*self.rpm
         prop_speed = prop_rpm/self.model['prop_pitch']
 
-        rudder_speed = max(math.sqrt(prop_speed),self.speed)
-
+        if prop_speed > 0:
+            rudder_speed = max(math.sqrt(prop_speed),self.speed)
+        else:
+            rudder_speed = self.speed
+            
         thrust = self.prop_coefficient*(prop_speed**2-self.speed**2)
         thrust = random.gauss(thrust,thrust*0.1)
 
