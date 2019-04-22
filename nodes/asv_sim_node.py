@@ -11,6 +11,7 @@ import threading
 
 import rospy
 from geometry_msgs.msg import Twist
+from geometry_msgs.msg import TwistStamped
 from std_msgs.msg import Float64
 from std_msgs.msg import Float32
 from std_msgs.msg import Bool
@@ -48,6 +49,7 @@ class AsvSim:
         rospy.init_node('asv_sim')
         self.position_publisher = rospy.Publisher('/position', GeoPointStamped, queue_size = 5)
         self.heading_publisher = rospy.Publisher('/heading', NavEulerStamped, queue_size = 5)
+        self.speed_publisher = rospy.Publisher('/sog', TwistStamped, queue_size = 5)
         self.clock_publisher = rospy.Publisher('/clock', Clock, queue_size = 5)
         self.clock_factor_subscriber = rospy.Subscriber('/clock_factor', Float64, self.clock_factor_callback)
         self.cmd_vel_subscriber = rospy.Subscriber('/cmd_vel', Twist, self.cmd_vel_callback)
@@ -101,6 +103,11 @@ class AsvSim:
         
         self.position_publisher.publish(gps)
 
+        ts = TwistStamped()
+        ts.header.stamp = self.dynamics.last_update
+        # TODO should this be split in x and y components when heading != course?
+        ts.twist.linear.x = self.dynamics.sog
+        self.speed_publisher.publish(ts)
         
         #p.basic_position.cog = self.dynamics.cog
         #p.basic_position.sog = self.dynamics.sog
@@ -110,6 +117,8 @@ class AsvSim:
         h.header.stamp = self.dynamics.last_update
         h.orientation.heading = math.degrees(self.dynamics.heading)
         self.heading_publisher.publish(h)
+        
+        
 
 if __name__ == '__main__':
     try:
