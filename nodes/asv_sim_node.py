@@ -83,9 +83,12 @@ class AsvSim:
         self.last_command_timestamp = self.sim_time
 
     def reconfigure_callback(self, config, level):
-        print config
         self.environment.current['speed'] = config['current_speed']
         self.environment.current['direction'] = config['current_direction']
+        
+        for item in ('max_rpm','max_power','idle_rpm','max_rpm_change_rate','max_speed','mass','max_rudder_angle','rudder_distance','rudder_coefficient'):
+            self.dynamics.model[item] = config['dynamics_'+item]
+        self.dynamics.update_coefficients()
         return config
         
     def update(self, event):

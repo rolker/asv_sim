@@ -28,7 +28,10 @@ class Dynamics:
         self.environment = environment
         
         self.reset()
+        self.update_coefficients()
+        self.last_update = None
 
+    def update_coefficients(self):
         max_prop_speed = (self.model['max_rpm']*self.model['prop_ratio'])/self.model['prop_pitch']
         max_force = self.model['max_power']/self.model['max_speed']
         
@@ -36,10 +39,10 @@ class Dynamics:
         
 
         self.drag_coefficient = max_force /(self.model['max_speed']**3)
+        print 'prop coefficient:',self.prop_coefficient,'drag coefficient:',self.drag_coefficient
 
         #self.prop_coefficient = (self.model['max_speed']**3)*self.drag_coefficient/self.model['max_rpm']
         
-        self.last_update = None
 
 
     def reset(self):
