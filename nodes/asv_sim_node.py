@@ -88,6 +88,8 @@ class AsvSim:
         
         for item in ('max_rpm','max_power','idle_rpm','max_rpm_change_rate','max_speed','mass','max_rudder_angle','rudder_distance','rudder_coefficient'):
             self.dynamics.model[item] = config['dynamics_'+item]
+        for item in ('thrust','rudder','drag','current_speed','current_direction'):
+            self.dynamics.jitters[item] = config['jitter_'+item]
         self.dynamics.update_coefficients()
         return config
         

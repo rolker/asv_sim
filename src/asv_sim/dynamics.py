@@ -31,6 +31,8 @@ class Dynamics:
         self.update_coefficients()
         self.last_update = None
 
+        self.jitters = {'thurst':0.1, 'rudder':0.25, 'drag':0.1, 'current_speed':0.1, 'current_direction': 0.25}
+
     def update_coefficients(self):
         max_prop_speed = (self.model['max_rpm']*self.model['prop_ratio'])/self.model['prop_pitch']
         max_force = self.model['max_power']/self.model['max_speed']
@@ -90,10 +92,10 @@ class Dynamics:
             rudder_speed = self.speed
             
         thrust = self.prop_coefficient*(prop_speed**2-self.speed**2)
-        thrust = random.gauss(thrust,thrust*0.1)
+        thrust = random.gauss(thrust,thrust*self.jitters['thrust'])
 
         rudder_angle = rudder*self.model['max_rudder_angle']
-        rudder_angle += random.gauss(0.0,0.25)
+        rudder_angle += random.gauss(0.0,self.jitters['rudder'])
         rudder_rads = math.radians(rudder_angle)
 
         thrust_fwd = thrust*math.cos(rudder_rads)
@@ -107,7 +109,7 @@ class Dynamics:
                 self.heading += math.radians(360)
 
         drag = self.speed**3*self.drag_coefficient
-        drag = random.gauss(drag,drag*0.1)
+        drag = random.gauss(drag,drag*self.jitters['drag'])
 
         a = (thrust_fwd-drag)/self.model['mass']
 
@@ -126,8 +128,8 @@ class Dynamics:
             if self.environment is not None:
                 c = self.environment.getCurrent(self.latitude, self.longitude)
                 if c is not None:
-                    current_speed = random.gauss(c['speed'],c['speed']*0.1)
-                    current_direction = math.radians(c['direction']) + random.gauss(0.0,0.25)
+                    current_speed = random.gauss(c['speed'],c['speed']*self.jitters['current_speed'])
+                    current_direction = math.radians(c['direction']) + random.gauss(0.0,self.jitters['current_direction'])
                     self.longitude,self.latitude = geodesic.direct(self.longitude,self.latitude,current_direction,current_speed*delta_t)
             self.cog, self.sog = geodesic.inverse(last_long, last_lat, self.longitude, self.latitude)
             self.sog /= delta_t
