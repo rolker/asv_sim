@@ -31,7 +31,7 @@ class Dynamics:
         self.update_coefficients()
         self.last_update = None
 
-        self.jitters = {'thurst':0.1, 'rudder':0.25, 'drag':0.1, 'current_speed':0.1, 'current_direction': 0.25}
+        self.jitters = {'thrust':0.1, 'rudder':0.25, 'drag':0.1, 'current_speed':0.1, 'current_direction': 0.25}
 
     def update_coefficients(self):
         max_prop_speed = (self.model['max_rpm']*self.model['prop_ratio'])/self.model['prop_pitch']
@@ -52,11 +52,24 @@ class Dynamics:
         self.speed = 0.0
         self.longitude = math.radians(start_lon)
         self.latitude = math.radians(start_lat)
-        
+
         self.heading = 1.0
         self.pitch = 0.0
         self.roll = 0.0
-        
+
+        self.sog = 0.0
+        self.cog = 0.0
+
+    def set(self, lat, lon, heading):
+        self.rpm = 0
+        self.speed = 0.0
+        self.longitude = math.radians(lon)
+        self.latitude = math.radians(lat)
+
+        self.heading = heading
+        self.pitch = 0.0
+        self.roll = 0.0
+
         self.sog = 0.0
         self.cog = 0.0
 

@@ -8,9 +8,21 @@ find_package(catkin REQUIRED COMPONENTS
   rosgraph_msgs
   rospy
   dynamic_reconfigure
+  message_generation
 )
 
 catkin_python_setup()
+
+add_service_files(DIRECTORY srv
+        FILES
+        SetPose.srv
+)
+
+generate_messages(
+        DEPENDENCIES
+        geographic_msgs
+        marine_msgs
+)
 
 generate_dynamic_reconfigure_options(
     cfg/asv_sim.cfg
@@ -19,7 +31,7 @@ generate_dynamic_reconfigure_options(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES asv_sim
-#  CATKIN_DEPENDS asv_msgs asv_srvs rospy
+  CATKIN_DEPENDS message_runtime geographic_msgs marine_msgs
 #  DEPENDS system_lib
 )
 

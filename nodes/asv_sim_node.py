@@ -18,6 +18,7 @@ from std_msgs.msg import Bool
 from rosgraph_msgs.msg import Clock
 from geographic_msgs.msg import GeoPointStamped
 from marine_msgs.msg import NavEulerStamped
+from asv_sim.srv import SetPose
 
 import asv_sim.dynamics
 import asv_sim.environment
@@ -54,6 +55,8 @@ class AsvSim:
         self.clock_factor_subscriber = rospy.Subscriber('/clock_factor', Float64, self.clock_factor_callback)
         self.cmd_vel_subscriber = rospy.Subscriber('/cmd_vel', Twist, self.cmd_vel_callback)
         self.reset_subscriber = rospy.Subscriber('/sim_reset', Bool, self.reset_callback)
+
+        self.set_pose_service = rospy.Service('set_pose', SetPose, self.set_pose, buff_size=5)
         
         srv = Server(asv_simConfig, self.reconfigure_callback)
         
@@ -67,8 +70,11 @@ class AsvSim:
     
     def reset_callback(self, data):
         self.dynamics.reset()
-        
-        
+
+    def set_pose(self, req):
+        self.dynamics.set(req.point.position.latitude, req.point.position.longitude, req.nav.orientation.heading)
+        return True
+
     def update_clock(self):
         self.sim_time += rospy.Duration.from_sec(self.wallclock_time_step*self.time_factor)
         c = Clock(self.sim_time)
