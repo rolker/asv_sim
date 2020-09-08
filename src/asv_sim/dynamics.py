@@ -120,7 +120,10 @@ class Dynamics:
         method at an adequate rate.
         
         :param throttle: Normalized throttle value in the 0 to 1 range.
-        :param rudder: Normalized rudder value from -1 (left)  to 1 (right). 
+        :param rudder: Normalized rudder value from -1 (left)  to 1 (right).
+        :param timestamp: Time in seconds for the current iteration. It only 
+            matters that the time reference is consistant, since it's only
+            used to calculate elapsed time since the last update.
         """
         
         #print 'dynamics update:',throttle, rudder, timestamp
