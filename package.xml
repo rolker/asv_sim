@@ -22,10 +22,9 @@
   <exec_depend>message_runtime</exec_depend>
   <depend>geographic_msgs</depend>
   <depend>marine_msgs</depend>
+  <depend>python-catkin-pkg</depend>
 
-  <!-- The export tag contains other, unspecified, tags -->
   <export>
-    <!-- Other tools can request additional information be placed here -->
-
+    <rosdoc config="rosdoc.yaml"/>
   </export>
 </package>
