@@ -71,6 +71,7 @@ class Dynamics:
         max_prop_speed = (self.model['max_rpm']*self.model['prop_ratio'])/self.model['prop_pitch']
         max_force = self.model['max_power']/self.model['max_speed']
         
+        # see comment in update related to thrust calculation for more info.
         self.prop_coefficient = max_force/(max_prop_speed**2-self.model['max_speed']**2)
         
 
@@ -168,6 +169,12 @@ class Dynamics:
         # Calculate force created by the difference of the speed of
         # the water pushed by the prop and the speed of the boat
         # through water.
+        #
+        # From https://wright.nasa.gov/airplane/propth.html
+        #
+        # F = .5 * r * A * [Ve ^2 - V0 ^2]
+        # 
+        # Replace .5 * r * A by prop_coefficient to get the following
         thrust = self.prop_coefficient*(prop_speed**2-self.speed**2)
         thrust = random.gauss(thrust,thrust*self.jitters['thrust'])
 
