@@ -19,7 +19,7 @@
 coastal_surveyor = {'max_rpm':2400,
                     'max_power':74500,
                     'idle_rpm':100,
-                    'prop_ratio':0.389105058,
+                    'gearbox_ratio':0.389105058,
                     'prop_pitch':20,
                     'max_rpm_change_rate':1000,
                     'max_speed':5.14444444,

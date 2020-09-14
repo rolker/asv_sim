@@ -52,6 +52,9 @@ class AsvSim:
         self.heading_publisher = rospy.Publisher('/heading', NavEulerStamped, queue_size = 5)
         self.speed_publisher = rospy.Publisher('/sog', TwistStamped, queue_size = 5)
         self.clock_publisher = rospy.Publisher('/clock', Clock, queue_size = 5)
+        
+        self.diag_publishers = {}
+        
         self.clock_factor_subscriber = rospy.Subscriber('/clock_factor', Float64, self.clock_factor_callback)
         self.cmd_vel_subscriber = rospy.Subscriber('/cmd_vel', Twist, self.cmd_vel_callback)
         self.reset_subscriber = rospy.Subscriber('/sim_reset', Bool, self.reset_callback)
@@ -104,7 +107,7 @@ class AsvSim:
             self.throttle = 0.0
             self.rudder = 0.0
         
-        self.dynamics.update(self.throttle,self.rudder,event.current_real)
+        diag = self.dynamics.update(self.throttle,self.rudder,event.current_real)
         
         gps = GeoPointStamped()
         gps.header.stamp = self.dynamics.last_update
@@ -128,6 +131,11 @@ class AsvSim:
         h.header.stamp = self.dynamics.last_update
         h.orientation.heading = math.degrees(self.dynamics.heading)
         self.heading_publisher.publish(h)
+        
+        for key,value in diag.iteritems():
+            if not key in self.diag_publishers:
+                self.diag_publishers[key] = rospy.Publisher('/asv_sim/diagnostics/'+key, Float64, queue_size = 5)
+            self.diag_publishers[key].publish(value)
         
         
 
