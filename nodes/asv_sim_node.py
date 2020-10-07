@@ -5,6 +5,7 @@
 # University of New Hampshire
 # Copyright 2017, All rights reserved.
 
+from builtins import object
 import math
 import time
 import threading
@@ -28,7 +29,7 @@ import asv_sim.cw4
 from dynamic_reconfigure.server import Server
 from asv_sim.cfg import asv_simConfig
 
-class AsvSim:
+class AsvSim(object):
     def __init__(self,model="cw4"):
         self.throttle = 0.0
         self.rudder = 0.0
@@ -132,7 +133,7 @@ class AsvSim:
         h.orientation.heading = math.degrees(self.dynamics.heading)
         self.heading_publisher.publish(h)
         
-        for key,value in diag.iteritems():
+        for key,value in diag.items():
             if not key in self.diag_publishers:
                 self.diag_publishers[key] = rospy.Publisher('/asv_sim/diagnostics/'+key, Float64, queue_size = 5)
             self.diag_publishers[key].publish(value)

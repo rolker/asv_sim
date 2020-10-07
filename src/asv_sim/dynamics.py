@@ -5,9 +5,11 @@
 # University of New Hampshire
 # Copyright 2017, All rights reserved.
 
+from __future__ import absolute_import
+from builtins import object
 import math
 import random
-import geodesic
+from . import geodesic
 
 # Portsmouth, New Hampshire, pier
 #start_lat =  43.072091937198394
@@ -22,7 +24,7 @@ start_lon = -70.71054174878898
 #start_lat =  68.347
 #start_lon = -166.954
 
-class Dynamics:
+class Dynamics(object):
     """Simulate the dynamics of a boat.
     
     Using throttle and rudder inputs, calculate simplified forces acting on a boat changing its

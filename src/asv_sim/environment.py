@@ -6,7 +6,8 @@
 # Copyright 2017, All rights reserved.
 
 
-class Environment:
+from builtins import object
+class Environment(object):
     def __init__(self):
         self.current = {"speed": 1.0, "direction": 90.0}
         
