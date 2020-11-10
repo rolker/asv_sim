@@ -22,7 +22,7 @@
   <exec_depend>message_runtime</exec_depend>
   <depend>geographic_msgs</depend>
   <depend>marine_msgs</depend>
-  <depend>python-catkin-pkg</depend>
+  <depend>python3-catkin-pkg</depend>
 
   <export>
     <rosdoc config="rosdoc.yaml"/>
