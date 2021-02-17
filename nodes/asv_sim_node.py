@@ -49,16 +49,16 @@ class AsvSim(object):
 
     def run(self):
         rospy.init_node('asv_sim')
-        self.position_publisher = rospy.Publisher('/position', GeoPointStamped, queue_size = 5)
-        self.heading_publisher = rospy.Publisher('/heading', NavEulerStamped, queue_size = 5)
-        self.speed_publisher = rospy.Publisher('/sog', TwistStamped, queue_size = 5)
+        self.position_publisher = rospy.Publisher('position', GeoPointStamped, queue_size = 5)
+        self.heading_publisher = rospy.Publisher('heading', NavEulerStamped, queue_size = 5)
+        self.speed_publisher = rospy.Publisher('sog', TwistStamped, queue_size = 5)
         self.clock_publisher = rospy.Publisher('/clock', Clock, queue_size = 5)
         
         self.diag_publishers = {}
         
         self.clock_factor_subscriber = rospy.Subscriber('/clock_factor', Float64, self.clock_factor_callback)
-        self.cmd_vel_subscriber = rospy.Subscriber('/cmd_vel', Twist, self.cmd_vel_callback)
-        self.reset_subscriber = rospy.Subscriber('/sim_reset', Bool, self.reset_callback)
+        self.cmd_vel_subscriber = rospy.Subscriber('cmd_vel', Twist, self.cmd_vel_callback)
+        self.reset_subscriber = rospy.Subscriber('sim_reset', Bool, self.reset_callback)
 
         self.set_pose_service = rospy.Service('set_pose', SetPose, self.set_pose, buff_size=5)
         
@@ -135,7 +135,7 @@ class AsvSim(object):
         
         for key,value in diag.items():
             if not key in self.diag_publishers:
-                self.diag_publishers[key] = rospy.Publisher('/asv_sim/diagnostics/'+key, Float64, queue_size = 5)
+                self.diag_publishers[key] = rospy.Publisher('asv_sim/diagnostics/'+key, Float64, queue_size = 5)
             self.diag_publishers[key].publish(value)
         
         
