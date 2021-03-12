@@ -308,10 +308,10 @@ class Dynamics(object):
         drag = random.gauss(drag,drag*self.jitters['drag'])
 
         # calculate acceleration from f=ma.
-        a = (thrust_fwd-drag)/self.model['mass']
+        self.a = (thrust_fwd-drag)/self.model['mass']
 
         if delta_t is not None:
-            self.speed += a*delta_t
+            self.speed += self.a*delta_t
 
         # update position based on speed
         if delta_t is not None:

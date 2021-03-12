@@ -11,14 +11,16 @@ import time
 import threading
 
 import rospy
-from geometry_msgs.msg import Twist
-from geometry_msgs.msg import TwistStamped
+import tf.transformations
+
+from sensor_msgs.msg import NavSatFix
+from sensor_msgs.msg import Imu
+from geometry_msgs.msg import TwistWithCovarianceStamped
 from std_msgs.msg import Float64
 from std_msgs.msg import Float32
 from std_msgs.msg import Bool
 from rosgraph_msgs.msg import Clock
-from geographic_msgs.msg import GeoPointStamped
-from marine_msgs.msg import NavEulerStamped
+
 from asv_sim.srv import SetPose
 
 import asv_sim.dynamics
@@ -46,18 +48,23 @@ class AsvSim(object):
         self.sim_time = rospy.Time.from_sec(time.time())
         self.time_factor = 1.0
 
+        self.mru_frame = rospy.get_param('~mru_frame', 'mru')
 
     def run(self):
         rospy.init_node('asv_sim')
-        self.position_publisher = rospy.Publisher('position', GeoPointStamped, queue_size = 5)
-        self.heading_publisher = rospy.Publisher('heading', NavEulerStamped, queue_size = 5)
-        self.speed_publisher = rospy.Publisher('sog', TwistStamped, queue_size = 5)
+        self.position_publisher = rospy.Publisher('position', NavSatFix, queue_size = 5)
+        self.orientation_publisher = rospy.Publisher('orientation', Imu, queue_size = 5)
+        self.velocity_publisher = rospy.Publisher('velocity', TwistWithCovarianceStamped, queue_size = 5)
         self.clock_publisher = rospy.Publisher('/clock', Clock, queue_size = 5)
         
         self.diag_publishers = {}
+        self.have_commands_pub = rospy.Publisher('asv_sim/have_commands', Bool, queue_size = 5)
         
         self.clock_factor_subscriber = rospy.Subscriber('/clock_factor', Float64, self.clock_factor_callback)
-        self.cmd_vel_subscriber = rospy.Subscriber('cmd_vel', Twist, self.cmd_vel_callback)
+        
+        self.throttle_subscriber = rospy.Subscriber('throttle', Float32, self.throttle_callback)
+        self.rudder_subscriber = rospy.Subscriber('rudder', Float32, self.rudder_callback)
+        
         self.reset_subscriber = rospy.Subscriber('sim_reset', Bool, self.reset_callback)
 
         self.set_pose_service = rospy.Service('set_pose', SetPose, self.set_pose, buff_size=5)
@@ -87,10 +94,12 @@ class AsvSim(object):
             clock_timer = threading.Timer(self.wallclock_time_step,self.update_clock)
             clock_timer.start()
 
-    def cmd_vel_callback(self, data):
-        self.throttle = max(min(data.linear.x/self.dynamics.model['max_speed'],1.0),-1.0)
-        self.rudder = -max(min(data.angular.z,1.0),-1.0)
+    def throttle_callback(self, data):
+        self.throttle = max(min(data.data,1.0),-1.0)
         self.last_command_timestamp = self.sim_time
+        
+    def rudder_callback(self, data):
+        self.rudder = max(min(data.data,1.0),-1.0)
 
     def reconfigure_callback(self, config, level):
         self.environment.current['speed'] = config['current_speed']
@@ -107,37 +116,47 @@ class AsvSim(object):
         if self.last_command_timestamp is None or event.current_real - self.last_command_timestamp > rospy.Duration.from_sec(0.5*self.time_factor):
             self.throttle = 0.0
             self.rudder = 0.0
+            self.have_commands_pub.publish(False)
+        else:
+            self.have_commands_pub.publish(True)
         
         diag = self.dynamics.update(self.throttle,self.rudder,event.current_real)
         
-        gps = GeoPointStamped()
-        gps.header.stamp = self.dynamics.last_update
-        
-        gps.position.latitude = math.degrees(self.dynamics.latitude)
-        gps.position.longitude = math.degrees(self.dynamics.longitude)
-        
-        self.position_publisher.publish(gps)
+        nsf = NavSatFix()
+        nsf.header.stamp = self.dynamics.last_update
+        nsf.header.frame_id = self.mru_frame
+        nsf.latitude = math.degrees(self.dynamics.latitude)
+        nsf.longitude = math.degrees(self.dynamics.longitude)
+        self.position_publisher.publish(nsf)
 
-        ts = TwistStamped()
-        ts.header.stamp = self.dynamics.last_update
-        # TODO should this be split in x and y components when heading != course?
-        ts.twist.linear.x = self.dynamics.sog
-        self.speed_publisher.publish(ts)
+        imu = Imu()                  
+        imu.header.stamp = self.dynamics.last_update
+        imu.header.frame_id = self.mru_frame
+        yaw = math.radians(90.0)-self.dynamics.heading
+        q = tf.transformations.quaternion_from_euler(yaw, 0, 0, 'rzyx')
+        imu.orientation.x = q[0]
+        imu.orientation.y = q[1]
+        imu.orientation.z = q[2]
+        imu.orientation.w = q[3]
+        imu.angular_velocity.z = -self.dynamics.yaw_rate
+        imu.linear_acceleration.x = self.dynamics.a
+        self.orientation_publisher.publish(imu)
+
+        twcs = TwistWithCovarianceStamped()
+        twcs.header.stamp = self.dynamics.last_update
+        twcs.header.frame_id = self.mru_frame
         
-        #p.basic_position.cog = self.dynamics.cog
-        #p.basic_position.sog = self.dynamics.sog
-        #p.header.stamp = self.dynamics.last_update
+        sin_yaw = math.sin(yaw)
+        cos_yaw = math.cos(yaw)
         
-        h = NavEulerStamped()
-        h.header.stamp = self.dynamics.last_update
-        h.orientation.heading = math.degrees(self.dynamics.heading)
-        self.heading_publisher.publish(h)
+        twcs.twist.twist.linear.x = sin_yaw*self.dynamics.sog
+        twcs.twist.twist.linear.y = cos_yaw*self.dynamics.sog
+        self.velocity_publisher.publish(twcs)
         
         for key,value in diag.items():
             if not key in self.diag_publishers:
                 self.diag_publishers[key] = rospy.Publisher('asv_sim/diagnostics/'+key, Float64, queue_size = 5)
             self.diag_publishers[key].publish(value)
-        
         
 
 if __name__ == '__main__':
