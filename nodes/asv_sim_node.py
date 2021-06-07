@@ -33,16 +33,28 @@ from asv_sim.cfg import asv_simConfig
 
 class AsvSim(object):
     def __init__(self,model="cw4"):
+        rospy.init_node('asv_sim')
+
         self.throttle = 0.0
         self.rudder = 0.0
         self.last_command_timestamp = None
         
         self.environment = asv_sim.environment.Environment()
         
+        start = {}
+        if rospy.has_param('~start_lat'):
+            start['lat'] = rospy.get_param('~start_lat')
+        if rospy.has_param('~start_lon'):
+            start['lon'] = rospy.get_param('~start_lon')
+        if rospy.has_param('~start_heading'):
+            start['heading'] = rospy.get_param('~start_heading')
+
+        rospy.loginfo("start: " + str(start))
+
         if model == "cw4":
-            self.dynamics = asv_sim.dynamics.Dynamics(asv_sim.cw4.cw4,self.environment)
+            self.dynamics = asv_sim.dynamics.Dynamics(asv_sim.cw4.cw4,self.environment, start)
         elif model == "coastal_surveyor":
-            self.dynamics = asv_sim.dynamics.Dynamics(asv_sim.coastal_surveyor.coastal_surveyor,self.environment)
+            self.dynamics = asv_sim.dynamics.Dynamics(asv_sim.coastal_surveyor.coastal_surveyor,self.environment, start)
         
         self.wallclock_time_step = 0.05
         self.sim_time = rospy.Time.from_sec(time.time())
@@ -51,7 +63,6 @@ class AsvSim(object):
         self.mru_frame = rospy.get_param('~mru_frame', 'mru')
 
     def run(self):
-        rospy.init_node('asv_sim')
         self.position_publisher = rospy.Publisher('position', NavSatFix, queue_size = 5)
         self.orientation_publisher = rospy.Publisher('orientation', Imu, queue_size = 5)
         self.velocity_publisher = rospy.Publisher('velocity', TwistWithCovarianceStamped, queue_size = 5)

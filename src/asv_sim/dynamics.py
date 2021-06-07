@@ -18,7 +18,7 @@ from . import geodesic
 # Portsmouth, New Hampshire, cod rock
 start_lat =  43.073397415457535
 start_lon = -70.71054174878898
-
+start_heading = 60.0
 
 # Point Hope, Alaska
 #start_lat =  68.347
@@ -31,7 +31,7 @@ class Dynamics(object):
     position, speed, and heading.
     """
     
-    def __init__(self,model, environment=None):
+    def __init__(self,model, environment=None, start=None):
         """Initialize the simulation with a model and optional environment.
         
         The model parameter is a dictionary containing values specific to the boat being simulated.
@@ -55,7 +55,18 @@ class Dynamics(object):
         The environment parameter is optional. TODO: add details
         
         """
-        
+        global start_lat
+        global start_lon
+        global start_heading
+
+        if start is not None:
+            if 'lat' in start:
+                start_lat = start['lat']
+            if 'lon' in start:
+                start_lon = start['lon']
+            if 'lat' in start:
+                start_heading = start['heading']
+
         self.model = model
         self.environment = environment
         
@@ -79,7 +90,7 @@ class Dynamics(object):
         self.longitude = math.radians(start_lon)
         self.latitude = math.radians(start_lat)
 
-        self.heading = 1.0
+        self.heading = math.radians(start_heading)
         self.pitch = 0.0
         self.roll = 0.0
 
