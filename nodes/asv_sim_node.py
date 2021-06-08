@@ -157,11 +157,13 @@ class AsvSim(object):
         twcs.header.stamp = self.dynamics.last_update
         twcs.header.frame_id = self.mru_frame
         
-        sin_yaw = math.sin(yaw)
-        cos_yaw = math.cos(yaw)
+
+        course_angle = math.radians(90.0)-self.dynamics.cog
+        sin_cog = math.sin(course_angle)
+        cos_cog = math.cos(course_angle)
         
-        twcs.twist.twist.linear.x = sin_yaw*self.dynamics.sog
-        twcs.twist.twist.linear.y = cos_yaw*self.dynamics.sog
+        twcs.twist.twist.linear.x = cos_cog*self.dynamics.sog
+        twcs.twist.twist.linear.y = sin_cog*self.dynamics.sog
         self.velocity_publisher.publish(twcs)
         
         for key,value in diag.items():
