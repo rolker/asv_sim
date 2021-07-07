@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Roland Arsenault and Val Schmidt
 # Center for Coastal and Ocean Mapping

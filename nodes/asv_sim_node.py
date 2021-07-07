@@ -1,11 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Roland Arsenault
 # Center for Coastal and Ocean Mapping
 # University of New Hampshire
 # Copyright 2017, All rights reserved.
 
-from builtins import object
 import math
 import time
 import threading

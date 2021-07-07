@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Roland Arsenault
 # Center for Coastal and Ocean Mapping
@@ -6,7 +6,6 @@
 # Copyright 2017, All rights reserved.
 
 
-from builtins import object
 class Environment(object):
     def __init__(self):
         self.current = {"speed": 1.0, "direction": 90.0}
