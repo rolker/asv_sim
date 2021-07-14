@@ -1,12 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Roland Arsenault
 # Center for Coastal and Ocean Mapping
 # University of New Hampshire
 # Copyright 2017, All rights reserved.
 
-from __future__ import absolute_import
-from builtins import object
 import math
 import random
 from . import geodesic
