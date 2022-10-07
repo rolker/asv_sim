@@ -9,19 +9,6 @@ import math
 import random
 from . import geodesic
 
-# Portsmouth, New Hampshire, pier
-#start_lat =  43.072091937198394
-#start_lon = -70.71126009757178
-
-# Portsmouth, New Hampshire, cod rock
-start_lat =  43.073397415457535
-start_lon = -70.71054174878898
-start_heading = 60.0
-
-# Point Hope, Alaska
-#start_lat =  68.347
-#start_lon = -166.954
-
 class Dynamics(object):
     """Simulate the dynamics of a boat.
     
@@ -29,7 +16,7 @@ class Dynamics(object):
     position, speed, and heading.
     """
     
-    def __init__(self,model, environment=None, start=None):
+    def __init__(self, model, environment=None, start=None):
         """Initialize the simulation with a model and optional environment.
         
         The model parameter is a dictionary containing values specific to the boat being simulated.
@@ -53,17 +40,19 @@ class Dynamics(object):
         The environment parameter is optional. TODO: add details
         
         """
-        global start_lat
-        global start_lon
-        global start_heading
+
+        # Portsmouth, New Hampshire, cod rock
+        self.start_lat =  43.073397415457535
+        self.start_lon = -70.71054174878898
+        self.start_heading = 60.0
 
         if start is not None:
             if 'lat' in start:
-                start_lat = start['lat']
+                self.start_lat = start['lat']
             if 'lon' in start:
-                start_lon = start['lon']
-            if 'lat' in start:
-                start_heading = start['heading']
+                self.start_lon = start['lon']
+            if 'heading' in start:
+                self.start_heading = start['heading']
 
         self.model = model
         self.environment = environment
@@ -85,10 +74,10 @@ class Dynamics(object):
         self.bucket_position = 0.0
         self.speed = 0.0
         self.yaw_rate = 0.0
-        self.longitude = math.radians(start_lon)
-        self.latitude = math.radians(start_lat)
+        self.longitude = math.radians(self.start_lon)
+        self.latitude = math.radians(self.start_lat)
 
-        self.heading = math.radians(start_heading)
+        self.heading = math.radians(self.start_heading)
         self.pitch = 0.0
         self.roll = 0.0
 
@@ -114,7 +103,7 @@ class Dynamics(object):
         self.cog = 0.0
 
     def update_coefficients(self):
-        """Calculates coefficents that are used to balance out the carious limits.
+        """Calculates coefficents that are used to balance out the various limits.
         
         The engine max power and the boat's top speed are used to calculate a maximum force.
         This maximum force is used to calculate a drag coefficient that results in forces

@@ -24,71 +24,54 @@ from asv_sim.srv import SetPose
 
 import asv_sim.dynamics
 import asv_sim.environment
-import asv_sim.coastal_surveyor
-import asv_sim.cw4
 
 from dynamic_reconfigure.server import Server
-from asv_sim.cfg import asv_simConfig
+from asv_sim.cfg import environmentConfig
+from asv_sim.cfg import dynamicsConfig
+from asv_sim.cfg import jitterConfig
 
-class AsvSim(object):
-    def __init__(self,model="cw4"):
-        rospy.init_node('asv_sim')
-
+class Platform:
+    def __init__(self, name, model, environment, sim, namespace, parameters):
+        self.name = name
+        self.sim = sim
         self.throttle = 0.0
         self.rudder = 0.0
         self.last_command_timestamp = None
-        
-        self.environment = asv_sim.environment.Environment()
-        
+
         start = {}
-        if rospy.has_param('~start_lat'):
-            start['lat'] = rospy.get_param('~start_lat')
-        if rospy.has_param('~start_lon'):
-            start['lon'] = rospy.get_param('~start_lon')
-        if rospy.has_param('~start_heading'):
-            start['heading'] = rospy.get_param('~start_heading')
+        if 'start_lat' in parameters:
+            start['lat'] = parameters['start_lat']
+        if 'start_lon' in parameters:
+            start['lon'] = parameters['start_lon']
+        if 'start_heading' in parameters:
+            start['heading'] = parameters['start_heading']
 
-        rospy.loginfo("start: " + str(start))
+        self.dynamics = asv_sim.dynamics.Dynamics(model, environment, start)
 
-        if model == "cw4":
-            self.dynamics = asv_sim.dynamics.Dynamics(asv_sim.cw4.cw4,self.environment, start)
-        elif model == "coastal_surveyor":
-            self.dynamics = asv_sim.dynamics.Dynamics(asv_sim.coastal_surveyor.coastal_surveyor,self.environment, start)
-        
-        self.wallclock_time_step = 0.05
-        self.sim_time = rospy.Time.from_sec(time.time())
-        self.time_factor = 1.0
+        self.namespace = namespace
 
-        self.mru_frame = rospy.get_param('~mru_frame', 'mru')
+        self.mru_frame = 'mru'
+        if 'mru_frame' in parameters:
+            self.mru_frame = parameters['mru_frame']
 
     def run(self):
-        self.position_publisher = rospy.Publisher('position', NavSatFix, queue_size = 5)
-        self.orientation_publisher = rospy.Publisher('orientation', Imu, queue_size = 5)
-        self.velocity_publisher = rospy.Publisher('velocity', TwistWithCovarianceStamped, queue_size = 5)
-        self.clock_publisher = rospy.Publisher('/clock', Clock, queue_size = 5)
-        
-        self.diag_publishers = {}
-        self.have_commands_pub = rospy.Publisher('asv_sim/have_commands', Bool, queue_size = 5)
-        
-        self.clock_factor_subscriber = rospy.Subscriber('/clock_factor', Float64, self.clock_factor_callback)
-        
-        self.throttle_subscriber = rospy.Subscriber('throttle', Float32, self.throttle_callback)
-        self.rudder_subscriber = rospy.Subscriber('rudder', Float32, self.rudder_callback)
-        
-        self.reset_subscriber = rospy.Subscriber('sim_reset', Bool, self.reset_callback)
+        self.position_publisher = rospy.Publisher(self.namespace+'/position', NavSatFix, queue_size = 5)
+        self.orientation_publisher = rospy.Publisher(self.namespace+'/orientation', Imu, queue_size = 5)
+        self.velocity_publisher = rospy.Publisher(self.namespace+'/velocity', TwistWithCovarianceStamped, queue_size = 5)
 
-        self.set_pose_service = rospy.Service('set_pose', SetPose, self.set_pose, buff_size=5)
+        self.diag_publishers = {}
+        self.have_commands_pub = rospy.Publisher('~'+self.name+'/have_commands', Bool, queue_size = 5)
+
+        self.throttle_subscriber = rospy.Subscriber(self.namespace+'/throttle', Float32, self.throttle_callback)
+        self.rudder_subscriber = rospy.Subscriber(self.namespace+'/rudder', Float32, self.rudder_callback)
+
+        self.reset_subscriber = rospy.Subscriber('~'+self.name+'/sim_reset', Bool, self.reset_callback)
+
+        self.set_pose_service = rospy.Service('~'+self.name+'/set_pose', SetPose, self.set_pose, buff_size=5)
         
-        srv = Server(asv_simConfig, self.reconfigure_callback)
-        
-        rospy.Timer(rospy.Duration.from_sec(0.05),self.update)
-        clock_timer = threading.Timer(self.wallclock_time_step,self.update_clock)
-        clock_timer.start()
-        rospy.spin()
-        
-    def clock_factor_callback(self, data):
-        self.time_factor = data.data
-    
+        self.dynamics_srv = Server(dynamicsConfig, self.dynamics_reconfigure_callback, self.name+'/dynamics')
+        self.jitter_srv = Server(jitterConfig, self.jitter_reconfigure_callback, self.name+'/jitter')
+
     def reset_callback(self, data):
         self.dynamics.reset()
 
@@ -96,34 +79,27 @@ class AsvSim(object):
         self.dynamics.set(req.point.position.latitude, req.point.position.longitude, req.nav.orientation.heading)
         return True
 
-    def update_clock(self):
-        self.sim_time += rospy.Duration.from_sec(self.wallclock_time_step*self.time_factor)
-        c = Clock(self.sim_time)
-        self.clock_publisher.publish(c)
-        if not rospy.is_shutdown():
-            clock_timer = threading.Timer(self.wallclock_time_step,self.update_clock)
-            clock_timer.start()
-
     def throttle_callback(self, data):
         self.throttle = max(min(data.data,1.0),-1.0)
-        self.last_command_timestamp = self.sim_time
+        self.last_command_timestamp = self.sim.sim_time
         
     def rudder_callback(self, data):
         self.rudder = max(min(data.data,1.0),-1.0)
 
-    def reconfigure_callback(self, config, level):
-        self.environment.current['speed'] = config['current_speed']
-        self.environment.current['direction'] = config['current_direction']
-        
+    def dynamics_reconfigure_callback(self, config, level):
         for item in ('max_rpm','max_power','idle_rpm','max_rpm_change_rate','max_speed','mass','max_rudder_angle','rudder_distance','rudder_coefficient'):
-            self.dynamics.model[item] = config['dynamics_'+item]
-        for item in ('thrust','rudder','drag','current_speed','current_direction'):
-            self.dynamics.jitters[item] = config['jitter_'+item]
+            self.dynamics.model[item] = config[item]
         self.dynamics.update_coefficients()
         return config
-        
+
+    def jitter_reconfigure_callback(self, config, level):
+        for item in ('thrust','rudder','drag','current_speed','current_direction'):
+            self.dynamics.jitters[item] = config[item]
+        self.dynamics.update_coefficients()
+        return config
+
     def update(self, event):
-        if self.last_command_timestamp is None or event.current_real - self.last_command_timestamp > rospy.Duration.from_sec(0.5*self.time_factor):
+        if self.last_command_timestamp is None or event.current_real - self.last_command_timestamp > rospy.Duration.from_sec(0.5*sim.time_factor):
             self.throttle = 0.0
             self.rudder = 0.0
             self.have_commands_pub.publish(False)
@@ -167,9 +143,81 @@ class AsvSim(object):
         
         for key,value in diag.items():
             if not key in self.diag_publishers:
-                self.diag_publishers[key] = rospy.Publisher('asv_sim/diagnostics/'+key, Float64, queue_size = 5)
+                self.diag_publishers[key] = rospy.Publisher('~'+self.name+'/diagnostics/'+key, Float64, queue_size = 5)
             self.diag_publishers[key].publish(value)
+
+
+class AsvSim(object):
+    def __init__(self,model="cw4"):
+        rospy.init_node('asv_sim')
+
+        models = rospy.get_param('~models')
+
+        platforms = rospy.get_param("~platforms")
         
+        self.environment = asv_sim.environment.Environment()
+
+        self.platforms = []
+
+        for p in platforms:
+            config = platforms[p]
+            model = config['model']
+            namespace = '/'+p
+            if 'namespace' in config:
+                namespace = config['namespace']
+            rospy.loginfo(p+": model: "+model+", ns: " + namespace)
+
+            self.platforms.append(Platform(p, models[model], self.environment, self, namespace, config))
+        
+        self.wallclock_time_step = 0.05
+        self.sim_time = rospy.Time.from_sec(time.time())
+        self.time_factor = 1.0
+
+
+    def run(self):
+
+        self.clock_publisher = rospy.Publisher('/clock', Clock, queue_size = 5)
+        
+        
+        self.clock_factor_subscriber = rospy.Subscriber('/clock_factor', Float64, self.clock_factor_callback)
+        
+        self.reset_subscriber = rospy.Subscriber('~sim_reset', Bool, self.reset_callback)
+
+        srv = Server(environmentConfig, self.reconfigure_callback)
+
+        for p in self.platforms:
+            p.run()
+        
+        rospy.Timer(rospy.Duration.from_sec(0.05),self.update)
+        clock_timer = threading.Timer(self.wallclock_time_step, self.update_clock)
+        clock_timer.start()
+        rospy.spin()
+        
+    def clock_factor_callback(self, data):
+        self.time_factor = data.data
+    
+    def reset_callback(self, data):
+        for p in self.platforms:
+            p.reset_callback(data)
+
+    def update_clock(self):
+        self.sim_time += rospy.Duration.from_sec(self.wallclock_time_step*self.time_factor)
+        c = Clock(self.sim_time)
+        self.clock_publisher.publish(c)
+        if not rospy.is_shutdown():
+            clock_timer = threading.Timer(self.wallclock_time_step,self.update_clock)
+            clock_timer.start()
+
+
+    def reconfigure_callback(self, config, level):
+        self.environment.current['speed'] = config['current_speed']
+        self.environment.current['direction'] = config['current_direction']
+        
+        return config
+        
+    def update(self, event):
+        for p in self.platforms:
+            p.update(event)
 
 if __name__ == '__main__':
     try:

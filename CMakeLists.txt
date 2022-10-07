@@ -25,7 +25,9 @@ generate_messages(
 )
 
 generate_dynamic_reconfigure_options(
-    cfg/asv_sim.cfg
+    cfg/environment.cfg
+    cfg/dynamics.cfg
+    cfg/jitter.cfg
 )
 
 catkin_package(
