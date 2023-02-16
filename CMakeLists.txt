@@ -4,7 +4,7 @@ project(asv_sim)
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   geographic_msgs
-  marine_msgs
+  project11_msgs
   rosgraph_msgs
   rospy
   dynamic_reconfigure
@@ -21,7 +21,7 @@ add_service_files(DIRECTORY srv
 generate_messages(
         DEPENDENCIES
         geographic_msgs
-        marine_msgs
+        project11_msgs
 )
 
 generate_dynamic_reconfigure_options(
@@ -33,7 +33,7 @@ generate_dynamic_reconfigure_options(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES asv_sim
-  CATKIN_DEPENDS message_runtime geographic_msgs marine_msgs
+  CATKIN_DEPENDS message_runtime geographic_msgs project11_msgs
 #  DEPENDS system_lib
 )
 

@@ -21,7 +21,7 @@
   <build_export_depend>message_runtime</build_export_depend>
   <exec_depend>message_runtime</exec_depend>
   <depend>geographic_msgs</depend>
-  <depend>marine_msgs</depend>
+  <depend>project11_msgs</depend>
   <depend>python3-catkin-pkg</depend>
 
   <export>
