@@ -19,8 +19,8 @@
 models/cw4:
   max_rpm:                3200
   max_power:              21300
-  idle_rpm:               800
-  clutch_engagement_rpm:  1000
+  idle_rpm:               1200
+  clutch_engagement_rpm:  800
   gearbox_ratio:          1.0
   propulsion_type:        jet
   bucket_efficency:       0.2
