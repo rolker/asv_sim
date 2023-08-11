@@ -81,7 +81,10 @@ class Platform:
 
     def throttle_callback(self, data):
         self.throttle = max(min(data.data,1.0),-1.0)
-        self.last_command_timestamp = self.sim.sim_time
+        if self.sim.use_sim_time:
+            self.last_command_timestamp = self.sim.sim_time
+        else:
+            self.last_command_timestamp = rospy.Time.now()
         
     def rudder_callback(self, data):
         self.rudder = max(min(data.data,1.0),-1.0)
@@ -99,6 +102,7 @@ class Platform:
         return config
 
     def update(self, event):
+        rospy.logdebug(event)
         if self.last_command_timestamp is None or event.current_real - self.last_command_timestamp > rospy.Duration.from_sec(0.5*sim.time_factor):
             self.throttle = 0.0
             self.rudder = 0.0
@@ -151,6 +155,8 @@ class AsvSim(object):
     def __init__(self,model="cw4"):
         rospy.init_node('asv_sim')
 
+        self.use_sim_time = rospy.get_param("/use_sim_time", False)
+
         models = rospy.get_param('~models')
 
         platforms = rospy.get_param("~platforms")
@@ -169,17 +175,17 @@ class AsvSim(object):
 
             self.platforms.append(Platform(p, models[model], self.environment, self, namespace, config))
         
-        self.wallclock_time_step = 0.05
-        self.sim_time = rospy.Time.from_sec(time.time())
+        if self.use_sim_time:
+            self.wallclock_time_step = 0.05
+            self.sim_time = rospy.Time.from_sec(time.time())
         self.time_factor = 1.0
 
 
     def run(self):
 
-        self.clock_publisher = rospy.Publisher('/clock', Clock, queue_size = 5)
-        
-        
-        self.clock_factor_subscriber = rospy.Subscriber('/clock_factor', Float64, self.clock_factor_callback)
+        if self.use_sim_time:
+            self.clock_publisher = rospy.Publisher('/clock', Clock, queue_size = 5)
+            self.clock_factor_subscriber = rospy.Subscriber('/clock_factor', Float64, self.clock_factor_callback)
         
         self.reset_subscriber = rospy.Subscriber('~sim_reset', Bool, self.reset_callback)
 
@@ -189,8 +195,9 @@ class AsvSim(object):
             p.run()
         
         rospy.Timer(rospy.Duration.from_sec(0.05),self.update)
-        clock_timer = threading.Timer(self.wallclock_time_step, self.update_clock)
-        clock_timer.start()
+        if self.use_sim_time:
+            clock_timer = threading.Timer(self.wallclock_time_step, self.update_clock)
+            clock_timer.start()
         rospy.spin()
         
     def clock_factor_callback(self, data):
