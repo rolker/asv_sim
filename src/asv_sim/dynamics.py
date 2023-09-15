@@ -23,11 +23,11 @@ class Dynamics(object):
         - max_rpm: The maximum engine speed achieved using full throttle.
         - max_power: Power in watts produced at max_rpm.
         - idle_rpm: Lowest rpm reached when throttle is at 0.
-        - clutch_engagement_rpm: RPM at which the clutch engages. Should set to 0 if alwas engaged.
+        - clutch_engagement_rpm: RPM at which the clutch engages. Should set to 0 if always engaged.
         - gearbox_ratio: Ratio of prop rpm relative to engine rpm.
         - propulsion_type: "jet" or "prop"
         - prop_pitch: TODO: figure out how this is used, web says inches traveled assuming no slip for each revolution.
-        - bucket_efficency: For jet drive with reverse bucket, how much reverse thrust relative to forward.
+        - bucket_efficiency: For jet drive with reverse bucket, how much reverse thrust relative to forward.
         - max_bucket_change_rate: How fast the bucket can move in full deflections per second.
         - max_rpm_change_rate: Represents engine inertia by limiting how much rpms can change per second.
         - max_speed: Maximum speed of the boat in m/s.
@@ -35,7 +35,7 @@ class Dynamics(object):
         - max_rudder_angle: Maximum deflection of the rudder in degrees.
         - max_turn_rate: Maximum rate the boat can turn in degrees per second.
         - rudder_distance: Distance between the rudder and the boat's center of mass in meters.
-        - rudder_coefficient: Expresses rudder efficency. TODO: Elaborate on what this means.
+        - rudder_coefficient: Expresses rudder efficiency. TODO: Elaborate on what this means.
         
         The environment parameter is optional. TODO: add details
         
@@ -85,7 +85,7 @@ class Dynamics(object):
         self.cog = 0.0
 
     def set(self, lat, lon, heading):
-        """Sets the boat to idle at the provded position and heading."""
+        """Sets the boat to idle at the provided position and heading."""
         
         self.rpm = 0
         self.rudder_angle = 0.0
@@ -103,7 +103,7 @@ class Dynamics(object):
         self.cog = 0.0
 
     def update_coefficients(self):
-        """Calculates coefficents that are used to balance out the various limits.
+        """Calculates coefficients that are used to balance out the various limits.
         
         The engine max power and the boat's top speed are used to calculate a maximum force.
         This maximum force is used to calculate a drag coefficient that results in forces
@@ -150,11 +150,11 @@ class Dynamics(object):
         :param throttle: Normalized throttle value in the 0 to 1 range.
         :param rudder: Normalized rudder value from -1 (left)  to 1 (right).
         :param timestamp: Time in seconds for the current iteration. It only 
-            matters that the time reference is consistant, since it's only
+            matters that the time reference is consistent, since it's only
             used to calculate elapsed time since the last update.
         """
         
-        # collect usefull debugging info
+        # collect useful debugging info
         diagnostics = {'rudder':rudder}
         
         # clamp throttle input
@@ -163,7 +163,7 @@ class Dynamics(object):
         throttle = abs(throttle)
         diagnostics['throttle'] = throttle
         
-        # Figure out the time inteval since the last update
+        # Figure out the time interval since the last update
         if self.last_update is None:
             delta_t = None
         else:
@@ -251,7 +251,7 @@ class Dynamics(object):
             
             # todo: model bucket movement
             if reverse:
-                thrust = -thrust*self.model['bucket_efficency']
+                thrust = -thrust*self.model['bucket_efficiency']
             
             
         thrust = random.gauss(thrust,thrust*self.jitters['thrust'])

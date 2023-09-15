@@ -23,7 +23,7 @@ models/cw4:
   clutch_engagement_rpm:  800
   gearbox_ratio:          1.0
   propulsion_type:        jet
-  bucket_efficency:       0.2
+  bucket_efficiency:      0.2
   max_bucket_change_rate: 0.5
   max_rpm_change_rate:    1000    # FIX
   max_speed:              2.75
