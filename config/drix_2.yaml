@@ -5,6 +5,6 @@ platforms/drix_2:
   mru_frame: project11/drix_2/nav
 
   # Seamounts south of Hawaii
-  start_lat: 18.72303
-  start_lon: -158.20745
+  start_lat: 18.72539
+  start_lon: -158.22822
   start_heading: 60.0
