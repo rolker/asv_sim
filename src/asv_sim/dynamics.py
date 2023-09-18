@@ -217,6 +217,7 @@ class Dynamics(object):
             # TODO: figure out why this seems to differe from the definition
             # of pitch as being inches of distance traveled per revolution
             prop_speed = prop_rpm/self.model['prop_pitch']
+            diagnostics['propwash_speed'] = prop_speed
 
             # Assuming the rudder is in the prop wash, determine the speed of the
             # water flowing by the rudder.
@@ -235,6 +236,7 @@ class Dynamics(object):
             # 
             # Replace .5 * r * A by prop_coefficient to get the following
             thrust = self.prop_coefficient*(prop_speed**2-self.speed**2)
+            diagnostics['prop_coefficient'] = self.prop_coefficient
             
         if self.model['propulsion_type'] == 'jet':
 
@@ -263,6 +265,7 @@ class Dynamics(object):
         # decompose the thrust into vectors that push the boat
         # forward and that rotates the boat
         thrust_fwd = thrust*math.cos(rudder_rads)
+        diagnostics['thrust_fwd'] = thrust_fwd
 
         if self.model['propulsion_type'] == 'prop':
             rudder_speed_yaw = rudder_speed*math.sin(rudder_rads)
@@ -302,8 +305,11 @@ class Dynamics(object):
                 self.heading += math.radians(360)
 
         # Calculate drag increasing with the cube of the speed.
-        drag = self.speed**3*self.drag_coefficient
+        drag = (self.speed**3)*self.drag_coefficient
         drag = random.gauss(drag,drag*self.jitters['drag'])
+
+        diagnostics['drag'] = drag
+        diagnostics['net_force'] = thrust_fwd-drag
 
         # calculate acceleration from f=ma.
         self.a = (thrust_fwd-drag)/self.model['mass']

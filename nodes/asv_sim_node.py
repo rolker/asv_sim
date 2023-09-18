@@ -69,7 +69,7 @@ class Platform:
 
         self.set_pose_service = rospy.Service('~'+self.name+'/set_pose', SetPose, self.set_pose, buff_size=5)
         
-        self.dynamics_srv = Server(dynamicsConfig, self.dynamics_reconfigure_callback, self.name+'/dynamics')
+        #self.dynamics_srv = Server(dynamicsConfig, self.dynamics_reconfigure_callback, self.name+'/dynamics')
         self.jitter_srv = Server(jitterConfig, self.jitter_reconfigure_callback, self.name+'/jitter')
 
     def reset_callback(self, data):
