@@ -22,7 +22,7 @@
 models/drix:
   max_rpm: 3200
   max_power: 27600
-  idle_rpm: 850
+  idle_rpm: 750
   clutch_engagement_rpm:  800
   gearbox_ratio:          0.417
   propulsion_type: prop
