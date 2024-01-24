@@ -111,7 +111,13 @@ class Platform:
             self.have_commands_pub.publish(True)
         
         diag = self.dynamics.update(self.throttle,self.rudder,event.current_real)
+
+        for key,value in diag.items():
+            if not key in self.diag_publishers:
+                self.diag_publishers[key] = rospy.Publisher('~'+self.name+'/diagnostics/'+key, Float64, queue_size = 5)
+            self.diag_publishers[key].publish(value)
         
+    def updateNav(self, event):
         nsf = NavSatFix()
         nsf.header.stamp = self.dynamics.last_update
         nsf.header.frame_id = self.mru_frame
@@ -145,10 +151,6 @@ class Platform:
         twcs.twist.twist.linear.y = sin_cog*self.dynamics.sog
         self.velocity_publisher.publish(twcs)
         
-        for key,value in diag.items():
-            if not key in self.diag_publishers:
-                self.diag_publishers[key] = rospy.Publisher('~'+self.name+'/diagnostics/'+key, Float64, queue_size = 5)
-            self.diag_publishers[key].publish(value)
 
 
 class AsvSim(object):
@@ -195,6 +197,7 @@ class AsvSim(object):
             p.run()
         
         rospy.Timer(rospy.Duration.from_sec(0.05),self.update)
+        rospy.Timer(rospy.Duration.from_sec(0.2),self.updateNav)
         if self.use_sim_time:
             clock_timer = threading.Timer(self.wallclock_time_step, self.update_clock)
             clock_timer.start()
@@ -225,6 +228,11 @@ class AsvSim(object):
     def update(self, event):
         for p in self.platforms:
             p.update(event)
+
+    def updateNav(self, event):
+        for p in self.platforms:
+            p.updateNav(event)
+
 
 if __name__ == '__main__':
     try:
