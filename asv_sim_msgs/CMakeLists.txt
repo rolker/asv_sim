@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(asv_sim_interfaces)
+project(asv_sim_msgs)
 
 set(CMAKE_CXX_STANDARD 17)
 

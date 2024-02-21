@@ -7,7 +7,7 @@
   <maintainer email="roland@ccom.unh.edu">roland</maintainer>
   <license>BSD-2-Clause</license>
 
-  <depend>asv_sim_interfaces</depend>
+  <depend>asv_sim_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>

@@ -12,7 +12,7 @@ from std_msgs.msg import Float32
 from std_msgs.msg import Bool
 from rcl_interfaces.msg import Parameter
 
-from asv_sim_interfaces.srv import SetPose
+from asv_sim_msgs.srv import SetPose
 
 import transforms3d
 
