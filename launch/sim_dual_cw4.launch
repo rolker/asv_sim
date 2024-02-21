@@ -1,7 +1,0 @@
-<launch>
-  <node pkg="asv_sim" type="asv_sim_node.py" name="asv_sim" output="screen">
-    <rosparam file="$(find asv_sim)/config/cw4.yaml"/>
-    <rosparam file="$(find asv_sim)/config/ben.yaml"/>
-    <rosparam file="$(find asv_sim)/config/bob.yaml"/>
-  </node>
-</launch>

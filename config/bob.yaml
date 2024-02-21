@@ -1,7 +1,0 @@
-platforms/bob:
-  model: cw4
-
-  # Portsmouth, New Hampshire, close to cod rock
-  start_lat: 43.074
-  start_lon: -70.711
-  start_heading: 315.0

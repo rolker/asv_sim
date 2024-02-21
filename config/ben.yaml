@@ -1,9 +1,0 @@
-platforms/ben:
-  model: cw4
-
-  mru_frame: ben/nav
-
-  # Portsmouth, New Hampshire, cod rock
-  start_lat: 43.073397415457535
-  start_lon: -70.71054174878898
-  start_heading: 60.0

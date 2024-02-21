@@ -1,8 +1,0 @@
-<launch>
-    <node pkg="asv_sim" type="asv_sim" name="asv_sim"/>
-    <node pkg="remote_control" type="remote_control" name="remote_control"/>
-    <node pkg="remote_control" type="remote_control_joy_sender.py" name="remote_control_joy_sender"/>
-    <node pkg="asv_helm" type="asv_helm_node" name="asv_helm"/>
-</launch>
-
-

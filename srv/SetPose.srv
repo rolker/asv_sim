@@ -1,6 +1,0 @@
-# Service for setting the pose of the ASV in the simulator
-
-geographic_msgs/GeoPointStamped point
-project11_msgs/NavEulerStamped     nav
----
-bool                            success
