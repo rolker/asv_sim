@@ -5,6 +5,7 @@ import math
 
 import asv_sim.asv_sim_node
 from sensor_msgs.msg import NavSatFix
+from sensor_msgs.msg import NavSatStatus
 from sensor_msgs.msg import Imu
 from geometry_msgs.msg import TwistWithCovarianceStamped
 from std_msgs.msg import Float64
@@ -129,6 +130,7 @@ class Platform:
         nsf = NavSatFix()
         nsf.header.stamp = self.dynamics.last_update.to_msg()
         nsf.header.frame_id = self.mru_frame
+        nsf.status.status = NavSatStatus.STATUS_FIX
         nsf.latitude = math.degrees(self.dynamics.latitude)
         nsf.longitude = math.degrees(self.dynamics.longitude)
         self.position_publisher.publish(nsf)
